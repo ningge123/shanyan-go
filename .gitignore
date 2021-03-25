@@ -1,0 +1,14 @@
+docs
+.idea
+.vscode
+.DS_Store
+config.conf
+user_application*
+main
+*.exe
+**/logs
+!./logs
+debug
+__debug_bin
+nohup.out
+deploy.sh
