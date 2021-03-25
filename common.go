@@ -39,7 +39,7 @@ type BaseResponse struct {
 }
 
 type MobileQueryResponse struct {
-	BaseResponse *BaseResponse
+	BaseResponse
 	Data struct{
 		MobileName string 	`json:"mobileName"`
 		TradeNo    string 	`json:"tradeNo"`

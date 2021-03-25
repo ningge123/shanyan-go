@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"encoding/base64"
 	"fmt"
 	"testing"
 )
@@ -17,29 +16,7 @@ func TestHmacSHA256(t *testing.T) {
 }
 
 func TestAesDecrypt(t *testing.T) {
-	//key的长度必须是16、24或者32字节，分别用于选择AES-128, AES-192, or AES-256
-	var aeskey = []byte("12345678abcdefgh")
-	pass := []byte("vdncloud123456")
-	xpass, err := AesEncrypt(pass,aeskey)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	pass64 := base64.StdEncoding.EncodeToString(xpass)
-	fmt.Printf("加密后:%v\n",pass64)
-
-	bytesPass, err := base64.StdEncoding.DecodeString(pass64)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	tpass, err := AesDecrypt(bytesPass, aeskey)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	tpass := AesDecrypt("2909C2900EA14424AA689EA303F3AEE5", "uHsPj1mV")
 
 	fmt.Printf("解密后:%s\n", tpass)
 }
@@ -66,7 +43,7 @@ func TestClient_Sign(t *testing.T) {
 }
 
 func TestClient_MobileQuery(t *testing.T) {
-	client := NewClient("appID", "appKEY")
+	client := NewClient("appid", "appkey")
 	mobile, err := client.MobileQuery("token")
 	if err != nil {
 		t.Error(err)

@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -51,17 +52,12 @@ func (c Client) MobileQuery(token string) (string, error)  {
 		return "", err
 	}
 
-	if mobileQueryResponse.BaseResponse.Code != strconv.Itoa(MSG_SUCCESS) {
+	if mobileQueryResponse.Code != strconv.Itoa(MSG_SUCCESS) {
 		return "", errors.New(mobileQueryResponse.BaseResponse.Message)
 	}
 
 	// 解密出手机号
-	mobile, err := AesDecrypt([]byte(mobileQueryResponse.Data.MobileName), []byte(c.appKey))
-	if err != nil {
-		return "", err
-	}
-
-	return string(mobile), nil
+	return AesDecrypt(mobileQueryResponse.Data.MobileName, c.appKey), nil
 }
 
 // shanyan签名
@@ -102,20 +98,16 @@ func HmacSHA256(secret, data string) string {
 }
 
 //@brief:AES解密
-func AesDecrypt(crypted, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
+func AesDecrypt(crypted, key string) string {
+	hash := md5.Sum([]byte(key))
+	hashString := hex.EncodeToString(hash[:])
+	block, _ := aes.NewCipher([]byte(hashString[:16]))
+	ecb := cipher.NewCBCDecrypter(block, []byte(hashString[16:]))
+	source, _ := hex.DecodeString(crypted)
+	decrypted := make([]byte, len(source))
+	ecb.CryptBlocks(decrypted, source)
 
-	//AES分组长度为128位，所以blockSize=16，单位字节
-	blockSize := block.BlockSize()
-	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])	//初始向量的长度必须等于块block的长度16字节
-	origData := make([]byte, len(crypted))
-	blockMode.CryptBlocks(origData, crypted)
-	origData = PKCS5UnPadding(origData)
-
-	return origData, nil
+	return string(PKCS5UnPadding(decrypted))
 }
 
 //@brief:去除填充数据
